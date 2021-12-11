@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
-import random
-
-import numpy as np
-import torch
 from habitat import logger
 from habitat_baselines.common.baseline_registry import baseline_registry
 
@@ -16,6 +11,11 @@ from vlnce_baselines.nonlearning_agents import (
     nonlearning_inference,
 )
 
+import argparse
+import random
+
+import numpy as np
+import torch
 
 def main():
     parser = argparse.ArgumentParser()

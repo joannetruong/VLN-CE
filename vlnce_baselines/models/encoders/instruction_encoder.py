@@ -3,6 +3,7 @@ import json
 
 import torch
 import torch.nn as nn
+from transformers import BertModel
 from habitat import Config
 
 
@@ -41,6 +42,11 @@ class InstructionEncoder(nn.Module):
                     embedding_dim=config.embedding_size,
                     padding_idx=0,
                 )
+        elif config.sensor_uuid == "bert_instruction":
+            self.embedding_layer = BertModel.from_pretrained('bert-base-uncased')
+            if not self.config.fine_tune_embeddings:
+                for param in self.embedding_layer.parameters():
+                    param.requires_grad = False
 
     @property
     def output_size(self):
@@ -69,6 +75,10 @@ class InstructionEncoder(nn.Module):
             instruction = observations["instruction"].long()
             lengths = (instruction != 0.0).long().sum(dim=1)
             instruction = self.embedding_layer(instruction)
+        elif self.config.sensor_uuid == "bert_instruction":
+            instruction = observations["bert_instruction"].long()
+            lengths = (instruction != 0.0).long().sum(dim=1)
+            instruction = self.embedding_layer(instruction)["last_hidden_state"]
         else:
             instruction = observations["rxr_instruction"]
 
@@ -76,7 +86,7 @@ class InstructionEncoder(nn.Module):
         lengths = (lengths != 0.0).long().sum(dim=1)
 
         packed_seq = nn.utils.rnn.pack_padded_sequence(
-            instruction, lengths, batch_first=True, enforce_sorted=False
+            instruction, lengths.cpu(), batch_first=True, enforce_sorted=False
         )
 
         output, final_state = self.encoder_rnn(packed_seq)

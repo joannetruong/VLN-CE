@@ -1,14 +1,14 @@
-BASE_TASK_CONFIG_PATH: habitat_extensions/config/vlnce_task.yaml
+BASE_TASK_CONFIG_PATH: habitat_extensions/config/vlnce_task_bert.yaml
 TRAINER_NAME: dagger # recollect_trainer
 SIMULATOR_GPU_ID: 0
 TORCH_GPU_ID: 0
-NUM_ENVIRONMENTS: 1
-TENSORBOARD_DIR: data/tensorboard_dirs/cma_no_pretrain
-CHECKPOINT_FOLDER: data/checkpoints/cma_no_pretrain
-EVAL_CKPT_PATH_DIR: data/checkpoints/cma_no_pretrain
+NUM_ENVIRONMENTS: 8
+TENSORBOARD_DIR: data/tensorboard_dirs/cma_bert_10k
+CHECKPOINT_FOLDER: data/checkpoints/cma_bert_10k
+EVAL_CKPT_PATH_DIR: data/checkpoints/cma_bert_10k
 VIDEO_OPTION: []
-VIDEO_DIR: data/videos/cma_no_pretrain
-RESULTS_DIR: data/checkpoints/pretrained/evals/cma_no_pretrain
+VIDEO_DIR: data/videos/cma_bert_10k
+RESULTS_DIR: data/checkpoints/pretrained/evals/cma_bert_10k
 
 EVAL:
   USE_CKPT_CONFIG: False
@@ -35,4 +35,6 @@ MODEL:
 
   INSTRUCTION_ENCODER:
     bidirectional: True
-    use_pretrained_embeddings: False
+    sensor_uuid: bert_instruction
+    embedding_size: 768
+    fine_tune_embeddings: False

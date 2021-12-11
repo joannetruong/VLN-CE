@@ -29,6 +29,9 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=FutureWarning)
     import tensorflow as tf  # noqa: F401
 
+from transformers import BertTokenizer
+# from pytorch_pretrained_bert import BertTokenizer
+
 
 class ObservationsDict(dict):
     def pin_memory(self):
@@ -239,6 +242,10 @@ class DaggerTrainer(BaseVLNCETrainer):
         self.lmdb_features_dir = config.IL.DAGGER.lmdb_features_dir.format(
             split=config.TASK_CONFIG.DATASET.SPLIT
         )
+        self.use_bert = False
+        if config.TASK_CONFIG.TASK.INSTRUCTION_SENSOR_UUID == 'bert_instruction':
+            self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased', max_len=200)
+            self.use_bert = True
         super().__init__(config)
 
     def _make_dirs(self) -> None:
@@ -272,9 +279,34 @@ class DaggerTrainer(BaseVLNCETrainer):
         )
 
         observations = envs.reset()
-        observations = extract_instruction_tokens(
-            observations, self.config.TASK_CONFIG.TASK.INSTRUCTION_SENSOR_UUID
-        )
+        if self.use_bert:
+            instruction_sensor_uuid = self.config.TASK_CONFIG.TASK.INSTRUCTION_SENSOR_UUID
+            for i in range(len(observations)):
+                if (
+                    isinstance(observations[i][instruction_sensor_uuid], dict)
+                    and "tokens" in observations[i][instruction_sensor_uuid]
+                ):
+                    if instruction_sensor_uuid == 'bert_instruction':
+                        text = observations[i][instruction_sensor_uuid]["text"]
+
+                        tokenized = self.tokenizer.tokenize(text)
+                        tokenized_ids = self.tokenizer.convert_tokens_to_ids(tokenized)
+                        encoded = self.tokenizer.encode_plus(
+                            text=text,  # the sentence to be encoded
+                            add_special_tokens=False,  # Add [CLS] and [SEP]
+                            max_length = 200,  # maximum length of a sentence
+                            pad_to_max_length=True,  # Add [PAD]s
+                            return_attention_mask = True,  # Generate the attention mask
+                            return_tensors = 'np',  # ask the function to return PyTorch tensors
+                        )
+                        observations[i][instruction_sensor_uuid] = list(encoded['input_ids'].squeeze())
+                else:
+                    break
+        else:
+            observations = extract_instruction_tokens(
+                observations, self.config.TASK_CONFIG.TASK.INSTRUCTION_SENSOR_UUID
+            )
+
         batch = batch_obs(observations, self.device)
         batch = apply_obs_transforms_batch(batch, self.obs_transforms)
 
@@ -474,7 +506,9 @@ class DaggerTrainer(BaseVLNCETrainer):
         Returns:
             None
         """
+        print('TRAIN 1')
         if self.config.IL.DAGGER.preload_lmdb_features:
+            print('TRAIN 2')
             try:
                 lmdb.open(self.lmdb_features_dir, readonly=True)
             except lmdb.Error as err:
@@ -483,12 +517,15 @@ class DaggerTrainer(BaseVLNCETrainer):
                 )
                 raise err
         else:
+            print('TRAIN 3')
             with lmdb.open(
                 self.lmdb_features_dir,
                 map_size=int(self.config.IL.DAGGER.lmdb_map_size),
             ) as lmdb_env, lmdb_env.begin(write=True) as txn:
+                print('TRAIN 3.5')
                 txn.drop(lmdb_env.open_db())
 
+        print('TRAIN 4')
         split = self.config.TASK_CONFIG.DATASET.SPLIT
         self.config.defrost()
         self.config.TASK_CONFIG.TASK.NDTW.SPLIT = split

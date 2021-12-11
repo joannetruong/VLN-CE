@@ -34,7 +34,7 @@ IL:
 
   RECOLLECT_TRAINER:
     preload_size: 30
-    preload_trajectories_file: False
+    preload_trajectories_file: True
     trajectories_file: data/trajectories_dirs/rxr_en_guide_trim250/trajectories.json.gz
     max_traj_len: 250  # 1.3% of episodes in the English training split are above 250
 

@@ -172,6 +172,12 @@ class RxRInstructionSensor(Sensor):
         episode: VLNExtendedEpisode,
         **kwargs,
     ):
+        print('RXR LOADING INSTRUCTIONS 1')
+        print('self.features_path: ', self.features_path)
+        print('episode: ', episode)
+        print('episode.instruction.split: ', episode.instruction.split)
+        print('int(episode.instruction.instruction_id): ', str(int(episode.instruction.instruction_id)))
+        print('episode.instruction.language.split("-")[0]: ', episode.instruction.language.split("-")[0])
         features = np.load(
             self.features_path.format(
                 split=episode.instruction.split,
@@ -179,7 +185,10 @@ class RxRInstructionSensor(Sensor):
                 lang=episode.instruction.language.split("-")[0],
             )
         )
+        print('RXR LOADING INSTRUCTIONS 2')
         feats = np.zeros((512, 768), dtype=np.float32)
+        print('RXR LOADING INSTRUCTIONS 3')
         s = features["features"].shape
+        print('RXR LOADING INSTRUCTIONS 4')
         feats[: s[0], : s[1]] = features["features"]
         return feats

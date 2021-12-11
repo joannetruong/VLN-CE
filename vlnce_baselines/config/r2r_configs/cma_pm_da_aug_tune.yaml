@@ -4,7 +4,9 @@ TORCH_GPU_ID: 0
 NUM_ENVIRONMENTS: 1
 TENSORBOARD_DIR: data/tensorboard_dirs/cma_pm_da_aug_tune
 CHECKPOINT_FOLDER: data/checkpoints/cma_pm_da_aug_tune
-EVAL_CKPT_PATH_DIR: data/checkpoints/cma_pm_da_aug_tune
+EVAL_CKPT_PATH_DIR: data/checkpoints/cma_pm_da_aug_tune/ckpt.15.pth
+VIDEO_OPTION: ['disk']
+VIDEO_DIR: data/videos/cma_pm_da_aug_tune
 
 EVAL:
   USE_CKPT_CONFIG: False

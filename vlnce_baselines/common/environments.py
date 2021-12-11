@@ -13,6 +13,7 @@ from habitat_baselines.common.baseline_registry import baseline_registry
 class VLNCEDaggerEnv(habitat.RLEnv):
     def __init__(self, config: Config, dataset: Optional[Dataset] = None):
         super().__init__(config.TASK_CONFIG, dataset)
+        print('CREATED VLNCE DAGGER ENV')
 
     def get_reward_range(self) -> Tuple[float, float]:
         # We don't use a reward for DAgger, but the baseline_registry requires
